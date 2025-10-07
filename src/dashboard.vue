@@ -2,11 +2,23 @@
 
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/stores/auth';
 
 const router = useRouter();
+const auth = useAuth();
+
+const username = ref(''); // Display username if available
+
+auth.fetchMe().then(() => {
+  if (auth.user) {
+    username.value = auth.user.username;
+  } else {
+    username.value = 'Guest';
+  }
+});
 
 const logout = () => {
-  localStorage.removeItem('token');
+  auth.logout();
   router.push('/');
 }
 
@@ -18,27 +30,7 @@ const randomSize = (e) => {
 
 <template>
   <h1>Fantastic Dashboard</h1>
-  <form>
-    Garbo Data Server dashboard <br>
-    <label for="username">Username</label>
-    <input
-      type="text"
-      id="usernameBox"
-      name="username"
-      required
-      minlength="4"
-      maxlength="8"
-      size="10" /> <br>
-    <label for="pwd">Password</label>
-    <input
-      type="password"
-      id="pwd"
-      name="pwd"
-      required
-      minlength="4"
-      maxlength="8"
-      size="10" />
-  </form>
+  <h2>Hello, {{ username }}</h2>
   <img id="devLogo" @click="randomSize" src= "./images/devArt.png" alt="100% the Solar Car logo" width="10%" class="center">
   <button type="button" @click="logout">Logout</button>
 </template>

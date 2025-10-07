@@ -1,42 +1,40 @@
 <script setup>
 import { ref } from 'vue';
 
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+
+import { useAuth } from '@/stores/auth';
 
 const router = useRouter();
+const auth = useAuth();
+const route = useRoute();
 
 const username = ref('');
 const password = ref('');
+const loading = ref(false);
+const error = ref('');
 
-const login = () => {
-  localStorage.setItem('token', 'your_token_here');
-  router.push('/dashboard');
-};
+async function submit() {
+  loading.value = true
+  error.value = ''
+  try {
+    await auth.login(username.value, password.value)
+    router.push((route.query.redirect) || '/dashboard')
+  } catch {
+    error.value = 'Login failed'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
   <h1>Amazing Login page</h1>
-  <form>
-    Garbo Data Server login <br>
-    <label for="username">Username</label>
-    <input
-      type="text"
-      id="usernameBox"
-      name="username"
-      required
-      minlength="4"
-      maxlength="8"
-      size="10" /> <br>
-    <label for="pwd">Password</label>
-    <input
-      type="password"
-      id="pwd"
-      name="pwd"
-      required
-      minlength="4"
-      maxlength="8"
-      size="10" />
-      <button type="button" @click="login">Login</button>
+  <form @submit.prevent="submit" class="login">
+    <input v-model="username" type="text" placeholder="username" required>
+    <input v-model="password" type="password" placeholder="password" required>
+    <button :disabled="loading">{{ loading ? '...' : 'Log in' }}</button>
+    <p v-if="error" style="color:red">{{ error }}</p>
   </form>
   <img id="devLogo" src= "./images/devArt.png" alt="100% the Solar Car logo" width="10%" class="center">
 </template>
@@ -55,7 +53,3 @@ const login = () => {
   margin-left: auto;
   margin-right: auto;
   }</style>
-
-<script>
-  export default {}
-</script>
