@@ -14,6 +14,7 @@ auth.fetchMe().then(() => {
     username.value = auth.user.username;
   } else {
     username.value = 'Guest';
+    router.push('/');
   }
 });
 
@@ -33,39 +34,20 @@ const randomSize = (e) => {
 </script>
 
 <template>
-  <h1>Fantastic Dashboard</h1>
-  <h2>Hello, {{ username }}</h2>
-  <img id="devLogo" @click="randomSize" src= "./images/devArt.png" alt="100% the Solar Car logo" width="10%" class="center">
-  <button type="button" @click="logout">Logout</button>
+  <nav class="w-full bg-gray-900 border-b border-gray-800 text-white">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex h-14 items-center justify-between">
+        <RouterLink to="/dashboard" class="font-semibold">Solar Car</RouterLink>
+        <div class="flex items-center space-x-6">
+          <RouterLink to="/dashboard" class="hover:text-yellow-300">Dashboard</RouterLink>
+          <button type="button" @click="logout" class="border border-solid border-white rounded-sm cursor-pointer p-2">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="flex flex-col items-center justify-center min-h-screen space-y-4">
+    <h1 class="text-2xl mb-2">Fantastic Dashboard</h1>
+    <h2 class="text-xl">Hello, {{ username }}</h2>
+    <img id="devLogo" @click="randomSize" src= "./images/devArt.png" alt="100% the Solar Car logo" width="10%" class="center">
+  </div>
 </template>
-
-<style scoped>   
-
-form {
-  background-color: pink;
-  width: min-content;
-  min-width: 30%;
-  border-style: dashed;
-  border-color: greenyellow;
-  border-width: 5px;
-  border-radius: 20px;
-  text-align: center;
-}
-
-  input {
-  width: 70%;
-  border: 1px solid green;
-  padding: 1px;
-  margin: 5px;
-  text-align: center;
-}
- .center {
-  display: block;
-  margin-top: 10%;
-  margin-left: auto;
-  margin-right: auto;
-  }</style>
-
-<script>
-  export default {}
-</script>
