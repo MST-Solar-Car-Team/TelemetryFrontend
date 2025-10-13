@@ -19,7 +19,11 @@ auth.fetchMe().then(() => {
 
 const logout = () => {
   auth.logout();
-  router.push('/');
+  // wait for logout to complete
+  auth.fetchMe().then(() => {
+    username.value = 'Guest';
+    router.push('/');
+  });
 }
 
 const randomSize = (e) => {
