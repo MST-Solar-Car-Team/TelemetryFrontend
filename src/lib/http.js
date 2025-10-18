@@ -5,3 +5,8 @@ export const http = axios.create({
   baseURL: '/api',
   withCredentials: true
 })
+
+export async function fetchArrow(url, params = {}) {
+  const res = await http.get(url, { params, responseType: 'arraybuffer' })
+  return new Uint8Array(res.data) // Arrow IPC bytes
+}
