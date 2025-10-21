@@ -4,7 +4,7 @@
       <div class="flex h-14 items-center justify-between">
         <RouterLink to="/dashboard" class="font-semibold">Solar Car</RouterLink>
         <div class="flex items-center space-x-6">
-          <RouterLink to="/dashboard" class="hover:text-yellow-300">Dashboard</RouterLink>
+          <button @click="returnToDash" class="hover:text-yellow-300">Dashboard</button>
           <button type="button" @click="logout" class="border border-solid border-white rounded-sm cursor-pointer p-2">Logout</button>
         </div>
       </div>
@@ -13,9 +13,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/stores/auth';
+
+const props = defineProps({
+  returnToDash: {
+    type: Function,
+    required: true
+  }
+});
 
 const router = useRouter();
 const auth = useAuth();

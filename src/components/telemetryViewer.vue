@@ -42,8 +42,8 @@ const chartData = computed(() => {
   if (rows.value.length === 0 || columns.value.length < 2) {
     return { labels: [], datasets: [] }
   }
-  const xCol = columns.value[0]
-  const yCol = columns.value[1]
+  const xCol = selectCols.value.split(',')[0].trim()
+  const yCol = selectCols.value.split(',')[1].trim()
   return {
     labels: rows.value.map(r => r[xCol]),
     datasets: [
@@ -70,16 +70,16 @@ onMounted(load)
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center gap-3">
-      <input v-model="selectCols" class="input" placeholder="time_s,voltage_v">
-      <input v-model="whereSql" class="input" placeholder="time_s BETWEEN 0 AND 600">
-      <button class="btn" @click="load">Load</button>
+    <div class="flex items-center gap-3 justify-center">
+      <input v-model="selectCols" class="input text-center border border-solid rounded-sm" placeholder="time_s,voltage_v">
+      <input v-model="whereSql" class="input text-center border border-solid rounded-sm" placeholder="time_s BETWEEN 0 AND 600">
+      <!-- <button class="btn" @click="load">Load</button> -->
     </div>
 
     <div v-if="rows.length === 0">No data (try different filters)</div>
 
     <div v-else class="grid md:grid-cols-2 gap-6">
-      <div class="overflow-auto border rounded">
+      <div class="overflow-auto border rounded max-h-[500px]">
         <table class="min-w-full text-sm">
           <thead class="bg-transparent">
             <tr>
