@@ -76,7 +76,7 @@ const returnToDash = () => {
 </script>
 
 <template>
-  <navbar :returnToDash="returnToDash" />
+  <navbar :returnToDash="returnToDash" class="z-50" />
   <div v-if="activeName !== 'telemetryViewer'" class="text-center my-4">
     <select v-model="selectedFile" class="bg-gray-50 text-gray-900 text-sm rounded-lg w-60 p-3 mr-4 text-white bg-gray-700 border-gray-600 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500">
         <option>Select...</option>

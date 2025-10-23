@@ -1,6 +1,6 @@
 <template>
-  <nav class="w-full bg-gray-900 border-b border-gray-800 text-white">
-    <div class="max-w-7xl mx-auto px-4">
+  <nav class="w-full bg-gray-900 border-b border-gray-800 text-white border-2">
+    <div class="mx-auto px-4 z-10">
       <div class="flex h-14 items-center justify-between">
         <RouterLink to="/dashboard" class="font-semibold">Solar Car</RouterLink>
         <div class="flex items-center space-x-6">

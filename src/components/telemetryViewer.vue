@@ -14,7 +14,9 @@ const props = defineProps({
   }
 });
 
-const selectCols = ref('time_s,voltage_v') // change to your column names
+const selectXaxis = ref('time');
+const selectYaxis = ref('time')
+// var selectCols = ref(selectXaxis.value+','+selectYaxis.value) // change to your column names
 const whereSql = ref('TRUE')
 const columns = ref([])
 const rows = ref([])
@@ -23,7 +25,7 @@ async function load() {
   // Arrow fast path
   const res = await http.get(`/files/${props.file}/data`, {
     format: 'arrow',
-    select: selectCols.value,
+    select: selectXaxis.value+','+selectYaxis.value,
     where: whereSql.value,
     order: 'time_s ASC',
     limit: 50000
@@ -42,8 +44,8 @@ const chartData = computed(() => {
   if (rows.value.length === 0 || columns.value.length < 2) {
     return { labels: [], datasets: [] }
   }
-  const xCol = selectCols.value.split(',')[0].trim()
-  const yCol = selectCols.value.split(',')[1].trim()
+  const xCol = selectXaxis.value//selectCols.value.split(',')[0].trim()
+  const yCol = selectYaxis.value//selectCols.value.split(',')[1].trim()
   return {
     labels: rows.value.map(r => r[xCol]),
     datasets: [
@@ -71,8 +73,16 @@ onMounted(load)
 <template>
   <div class="space-y-6">
     <div class="flex items-center gap-3 justify-center">
-      <input v-model="selectCols" class="input text-center border border-solid rounded-sm" placeholder="time_s,voltage_v">
-      <input v-model="whereSql" class="input text-center border border-solid rounded-sm" placeholder="time_s BETWEEN 0 AND 600">
+      <select v-model="selectXaxis" class="input text-center border border-solid rounded-sm">
+        <option>Select X-Axis...</option>
+        <option v-for="col in columns" :key="col" :value="col">{{ col }}</option>
+      </select>
+      <select v-model="selectYaxis" class="input text-center border border-solid rounded-sm">
+        <option>Select Y-Axis...</option>
+        <option v-for="col in columns" :key="col" :value="col">{{ col }}</option>
+      </select>
+      <!-- <input v-model="selectCols" class="input text-center border border-solid rounded-sm" placeholder="time_s,voltage_v"> -->
+      <!-- <input v-model="whereSql" class="input text-center border border-solid rounded-sm" placeholder="time_s BETWEEN 0 AND 600"> -->
       <!-- <button class="btn" @click="load">Load</button> -->
     </div>
 
