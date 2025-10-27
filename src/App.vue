@@ -8,7 +8,7 @@ const { error: authError } = storeToRefs(auth)
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <div v-if="authError" class="bg-red-700 text-white text-center py-2 px-4">
+    <div v-if="authError" class="bg-red-700 text-white text-center py-2 px-4 absolute inset-x-0 top-0">
       {{ authError }}
     </div>
     <router-view />
