@@ -157,14 +157,14 @@ const chartOptions = {
     <div class="flex items-center gap-3 justify-center">
       <select
         v-model="selectXaxis"
-        class="bg-gray-50 text-gray-900 text-sm rounded-lg w-60 p-3 text-white bg-gray-700 border border-gray-600 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
+        class="w-60 rounded-lg border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">Select X-Axis...</option>
         <option v-for="col in availableColumns" :key="col" :value="col">{{ col }}</option>
       </select>
       <select
         v-model="selectYaxis"
-        class="bg-gray-50 text-gray-900 text-sm rounded-lg w-60 p-3 text-white bg-gray-700 border border-gray-600 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
+        class="w-60 rounded-lg border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">Select Y-Axis...</option>
         <option v-for="col in availableColumns" :key="col" :value="col">{{ col }}</option>
@@ -174,31 +174,47 @@ const chartOptions = {
       <!-- <button class="btn" @click="load">Load</button> -->
     </div>
 
-    <div class="grid md:grid-cols-2 gap-6">
-      <div class="overflow-auto border rounded max-h-[500px]">
+    <div class="grid gap-6 md:grid-cols-2">
+      <div class="max-h-[480px] overflow-auto rounded-xl border border-gray-700 bg-gray-900/60 shadow-inner backdrop-blur">
         <template v-if="tableRows.length">
-          <table class="min-w-full text-sm">
-            <thead class="bg-transparent">
-              <tr>
-                <th v-for="c in availableColumns" :key="c" class="px-3 py-2 text-left font-semibold">{{ c }}</th>
+          <table class="min-w-full table-auto text-sm text-gray-100">
+            <thead class="sticky top-0 z-10 bg-gray-900/90 text-[0.7rem] uppercase tracking-wide text-gray-400 backdrop-blur">
+              <tr class="border-b border-gray-700">
+                <th
+                  v-for="c in availableColumns"
+                  :key="c"
+                  class="px-4 py-3 text-left font-semibold"
+                >
+                  {{ c }}
+                </th>
               </tr>
             </thead>
-            <tbody>
-              <tr v-for="(r, i) in tableRows.slice(0, 100)" :key="i" class="border-t">
-                <td v-for="c in availableColumns" :key="c" class="px-3 py-1">{{ r[c] }}</td>
+            <tbody class="divide-y divide-gray-800">
+              <tr
+                v-for="(r, i) in tableRows.slice(0, 100)"
+                :key="i"
+                class="transition-colors even:bg-gray-800/40 hover:bg-blue-500/10"
+              >
+                <td
+                  v-for="c in availableColumns"
+                  :key="c"
+                  class="whitespace-nowrap px-4 py-2 align-middle font-mono text-xs text-gray-200"
+                >
+                  {{ r[c] }}
+                </td>
               </tr>
             </tbody>
           </table>
-          <p class="p-2 text-xs text-gray-500">
+          <p class="px-4 py-3 text-right text-xs text-gray-400">
             Showing first {{ Math.min(tableRows.length, 100) }} of {{ tableRows.length }} rows
           </p>
         </template>
-        <div v-else class="h-full flex items-center justify-center p-4">
+        <div v-else class="flex h-full items-center justify-center p-6">
           <p class="text-sm text-gray-500 text-center">No telemetry rows loaded yet.</p>
         </div>
       </div>
 
-      <div class="p-2 border rounded min-h-[240px]">
+      <div class="min-h-[240px] rounded-xl border border-gray-700 bg-gray-900/60 p-4 shadow-inner backdrop-blur">
         <div
           v-if="needsAxisSelection"
           class="h-full flex items-center justify-center text-sm text-gray-400 text-center"
