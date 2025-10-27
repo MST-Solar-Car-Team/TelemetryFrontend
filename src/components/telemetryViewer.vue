@@ -16,7 +16,6 @@ const props = defineProps({
 
 const selectXaxis = ref('')
 const selectYaxis = ref('')
-const whereSql = ref('TRUE')
 const availableColumns = ref([])
 const tableRows = ref([])
 const chartRows = ref([])
@@ -80,7 +79,6 @@ async function loadChartData() {
       params: {
         format: 'arrow',
         select: `${selectXaxis.value},${selectYaxis.value}`,
-        where: whereSql.value,
         order: `${selectXaxis.value} ASC`,
         limit: 50000
       }
@@ -96,6 +94,63 @@ async function loadChartData() {
     console.error('Failed to load telemetry data', error)
     chartRows.value = []
   }
+}
+
+function setYAxisFromColumn(column) {
+  if (!column || selectYaxis.value === column) {
+    return
+  }
+  if (!availableColumns.value.includes(column)) {
+    return
+  }
+  selectYaxis.value = column
+}
+
+function setXAxisFromColumn(column) {
+  if (!column || selectXaxis.value === column) {
+    return
+  }
+  if (!availableColumns.value.includes(column)) {
+    return
+  }
+  selectXaxis.value = column
+}
+
+function handleHeaderClick(event, column) {
+  if (event.metaKey || event.ctrlKey) {
+    event.preventDefault()
+    setXAxisFromColumn(column)
+    return
+  }
+  setYAxisFromColumn(column)
+}
+
+function handleHeaderKey(event, column) {
+  if (event.metaKey || event.ctrlKey) {
+    event.preventDefault()
+    setXAxisFromColumn(column)
+  } else {
+    setYAxisFromColumn(column)
+  }
+}
+
+const headerButtonClass = column => {
+  const classes = [
+    'flex w-full items-center justify-between rounded-md border px-2 py-1 text-left text-xs uppercase tracking-wide transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900'
+  ]
+  if (selectYaxis.value === column) {
+    classes.push('bg-blue-500/10 text-blue-200 ring-1 ring-inset ring-blue-400/40')
+  } else {
+    classes.push('text-gray-300 hover:bg-blue-500/5 hover:text-blue-200')
+  }
+
+  if (selectXaxis.value === column) {
+    classes.push('border-emerald-400/60 shadow-[0_0_0_1px_rgba(16,185,129,0.3)]')
+  } else {
+    classes.push('border-transparent')
+  }
+
+  return classes.join(' ')
 }
 
 watch(
@@ -169,9 +224,6 @@ const chartOptions = {
         <option value="">Select Y-Axis...</option>
         <option v-for="col in availableColumns" :key="col" :value="col">{{ col }}</option>
       </select>
-      <!-- <input v-model="selectCols" class="input text-center border border-solid rounded-sm" placeholder="time_s,voltage_v"> -->
-      <!-- <input v-model="whereSql" class="input text-center border border-solid rounded-sm" placeholder="time_s BETWEEN 0 AND 600"> -->
-      <!-- <button class="btn" @click="load">Load</button> -->
     </div>
 
     <div class="grid gap-6 md:grid-cols-2">
@@ -183,9 +235,32 @@ const chartOptions = {
                 <th
                   v-for="c in availableColumns"
                   :key="c"
-                  class="px-4 py-3 text-left font-semibold"
+                  class="px-4 py-3 text-left font-semibold text-gray-300"
                 >
-                  {{ c }}
+                  <button
+                    type="button"
+                    :class="headerButtonClass(c)"
+                    @click="handleHeaderClick($event, c)"
+                    @keydown.enter="handleHeaderKey($event, c)"
+                    @keydown.space.prevent="handleHeaderKey($event, c)"
+                    title="Click to set Y axis, Ctrl+Click to set X axis"
+                  >
+                    <span class="font-semibold normal-case text-sm">{{ c }}</span>
+                    <div class="ml-2 flex items-center gap-1">
+                      <span
+                        v-if="selectYaxis === c"
+                        class="rounded-sm bg-blue-500/20 px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-[0.2em] text-blue-200"
+                      >
+                        Y
+                      </span>
+                      <span
+                        v-if="selectXaxis === c"
+                        class="rounded-sm bg-emerald-500/20 px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-[0.2em] text-emerald-200"
+                      >
+                        X
+                      </span>
+                    </div>
+                  </button>
                 </th>
               </tr>
             </thead>
