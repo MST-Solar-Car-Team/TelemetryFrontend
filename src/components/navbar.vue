@@ -4,7 +4,7 @@
       <div class="flex h-14 items-center justify-between">
         <RouterLink to="/dashboard" class="font-semibold">Solar Car</RouterLink>
         <div class="flex items-center space-x-6">
-          <button @click="returnToDash" class="hover:text-yellow-300">Dashboard</button>
+          <button @click="returnToDash" class="hover:text-yellow-300 hover:cursor-pointer">Dashboard</button>
           <button type="button" @click="logout" class="border border-solid border-white rounded-sm cursor-pointer p-2">Logout</button>
         </div>
       </div>

@@ -73,12 +73,18 @@ onMounted(load)
 <template>
   <div class="space-y-6">
     <div class="flex items-center gap-3 justify-center">
-      <select v-model="selectXaxis" class="input text-center border border-solid rounded-sm">
-        <option>Select X-Axis...</option>
+      <select
+        v-model="selectXaxis"
+        class="bg-gray-50 text-gray-900 text-sm rounded-lg w-60 p-3 text-white bg-gray-700 border border-gray-600 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
+      >
+        <option value="">Select X-Axis...</option>
         <option v-for="col in columns" :key="col" :value="col">{{ col }}</option>
       </select>
-      <select v-model="selectYaxis" class="input text-center border border-solid rounded-sm">
-        <option>Select Y-Axis...</option>
+      <select
+        v-model="selectYaxis"
+        class="bg-gray-50 text-gray-900 text-sm rounded-lg w-60 p-3 text-white bg-gray-700 border border-gray-600 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
+      >
+        <option value="">Select Y-Axis...</option>
         <option v-for="col in columns" :key="col" :value="col">{{ col }}</option>
       </select>
       <!-- <input v-model="selectCols" class="input text-center border border-solid rounded-sm" placeholder="time_s,voltage_v"> -->
