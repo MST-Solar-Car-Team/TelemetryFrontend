@@ -209,7 +209,7 @@ const chartOptions = {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center gap-3 justify-center">
+    <div class="flex items-center gap-3 mt-4 justify-center">
       <select
         v-model="selectXaxis"
         class="w-60 rounded-lg border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -249,13 +249,13 @@ const chartOptions = {
                     <div class="ml-2 flex items-center gap-1">
                       <span
                         v-if="selectYaxis === c"
-                        class="rounded-sm bg-blue-500/20 px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-[0.2em] text-blue-200"
+                        class="rounded-sm bg-blue-500/20 px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase text-blue-200"
                       >
                         Y
                       </span>
                       <span
                         v-if="selectXaxis === c"
-                        class="rounded-sm bg-emerald-500/20 px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-[0.2em] text-emerald-200"
+                        class="rounded-sm bg-emerald-500/20 px-1.5 py-0.5 text-[0.55rem] text-center font-semibold uppercase text-emerald-200"
                       >
                         X
                       </span>
