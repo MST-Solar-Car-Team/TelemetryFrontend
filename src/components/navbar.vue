@@ -38,12 +38,10 @@ auth.fetchMe().then(() => {
   }
 });
 
-const logout = () => {
-  auth.logout();
-  // wait for logout to complete
-  auth.fetchMe().then(() => {
-    username.value = 'Guest';
-    router.push('/');
-  });
+const logout = async () => {
+  await auth.logout()
+  await auth.fetchMe()
+  username.value = 'Guest';
+  router.push('/');
 }
 </script>
