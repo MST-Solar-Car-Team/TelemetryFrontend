@@ -15,15 +15,39 @@ const props = defineProps({
 });
 
 const selectXaxis = ref('')
-const selectYaxis = ref('')
+const selectYaxes = ref([])
 const availableColumns = ref([])
 const tableRows = ref([])
 const chartRows = ref([])
+const tableLoading = ref(false)
+const tableError = ref('')
+const chartLoading = ref(false)
+const chartError = ref('')
+const chartColors = [
+  { border: '#3b82f6', background: 'rgba(59, 130, 246, 0.2)' },
+  { border: '#10b981', background: 'rgba(16, 185, 129, 0.2)' },
+  { border: '#f59e0b', background: 'rgba(245, 158, 11, 0.2)' },
+  { border: '#ef4444', background: 'rgba(239, 68, 68, 0.2)' },
+  { border: '#8b5cf6', background: 'rgba(139, 92, 246, 0.2)' }
+]
+
+const yAxisSelection = computed({
+  get: () => selectYaxes.value[0] ?? '',
+  set: value => {
+    if (!value) {
+      selectYaxes.value = []
+      return
+    }
+    selectYaxes.value = [value]
+  }
+})
 
 async function loadTablePreview(file) {
-  if (!file || file === 'Select...') {
+  if (!file) {
     return
   }
+  tableLoading.value = true
+  tableError.value = ''
   try {
     const res = await http.get(`/files/${file}/data`, {
       params: {
@@ -56,29 +80,34 @@ async function loadTablePreview(file) {
     tableRows.value = dataRows
   } catch (error) {
     console.error('Failed to load available telemetry columns', error)
+    tableError.value = 'Unable to load telemetry preview.'
     availableColumns.value = []
     tableRows.value = []
+  } finally {
+    tableLoading.value = false
   }
 }
 
 async function loadChartData() {
   const file = props.file
-  if (!file || file === 'Select...' || !selectXaxis.value || !selectYaxis.value) {
+  if (!file || !selectXaxis.value || selectYaxes.value.length === 0) {
     chartRows.value = []
     return
   }
   if (
     !availableColumns.value.includes(selectXaxis.value) ||
-    !availableColumns.value.includes(selectYaxis.value)
+    selectYaxes.value.some(col => !availableColumns.value.includes(col))
   ) {
     chartRows.value = []
     return
   }
+  chartLoading.value = true
+  chartError.value = ''
   try {
     const res = await http.get(`/files/${file}/data`, {
       params: {
         format: 'arrow',
-        select: `${selectXaxis.value},${selectYaxis.value}`,
+        select: [selectXaxis.value, ...new Set(selectYaxes.value)].join(','),
         order: `${selectXaxis.value} ASC`,
         limit: 50000
       }
@@ -92,18 +121,29 @@ async function loadChartData() {
     chartRows.value = data
   } catch (error) {
     console.error('Failed to load telemetry data', error)
+    chartError.value = 'Unable to load chart data.'
     chartRows.value = []
+  } finally {
+    chartLoading.value = false
   }
 }
 
-function setYAxisFromColumn(column) {
-  if (!column || selectYaxis.value === column) {
+function setSingleYAxis(column) {
+  if (!column || !availableColumns.value.includes(column)) {
     return
   }
-  if (!availableColumns.value.includes(column)) {
+  selectYaxes.value = [column]
+}
+
+function toggleYAxis(column) {
+  if (!column || !availableColumns.value.includes(column)) {
     return
   }
-  selectYaxis.value = column
+  if (selectYaxes.value.includes(column)) {
+    selectYaxes.value = selectYaxes.value.filter(item => item !== column)
+  } else {
+    selectYaxes.value = [...selectYaxes.value, column]
+  }
 }
 
 function setXAxisFromColumn(column) {
@@ -122,15 +162,22 @@ function handleHeaderClick(event, column) {
     setXAxisFromColumn(column)
     return
   }
-  setYAxisFromColumn(column)
+  if (event.shiftKey) {
+    toggleYAxis(column)
+    return
+  }
+  setSingleYAxis(column)
 }
 
 function handleHeaderKey(event, column) {
   if (event.metaKey || event.ctrlKey) {
     event.preventDefault()
     setXAxisFromColumn(column)
+  } else if (event.shiftKey) {
+    event.preventDefault()
+    toggleYAxis(column)
   } else {
-    setYAxisFromColumn(column)
+    setSingleYAxis(column)
   }
 }
 
@@ -138,7 +185,7 @@ const headerButtonClass = column => {
   const classes = [
     'flex w-full items-center justify-between rounded-md border px-2 py-1 text-left text-xs uppercase tracking-wide transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900'
   ]
-  if (selectYaxis.value === column) {
+  if (selectYaxes.value.includes(column)) {
     classes.push('bg-blue-500/10 text-blue-200 ring-1 ring-inset ring-blue-400/40')
   } else {
     classes.push('text-gray-300 hover:bg-blue-500/5 hover:text-blue-200')
@@ -157,11 +204,11 @@ watch(
   () => props.file,
   async newFile => {
     selectXaxis.value = ''
-    selectYaxis.value = ''
+    selectYaxes.value = []
     chartRows.value = []
     tableRows.value = []
     availableColumns.value = []
-    if (!newFile || newFile === 'Select...') {
+    if (!newFile) {
       return
     }
     await loadTablePreview(newFile)
@@ -169,34 +216,35 @@ watch(
   { immediate: true }
 )
 
-watch([selectXaxis, selectYaxis], () => {
-  if (!selectXaxis.value || !selectYaxis.value) {
+watch([selectXaxis, selectYaxes], () => {
+  if (!selectXaxis.value || selectYaxes.value.length === 0) {
     chartRows.value = []
     return
   }
   loadChartData()
-})
+}, { deep: true })
 
-const needsAxisSelection = computed(() => !selectXaxis.value || !selectYaxis.value)
+const needsAxisSelection = computed(() => !selectXaxis.value || selectYaxes.value.length === 0)
+const yAxisLabel = computed(() => selectYaxes.value.join(', '))
 
 const chartData = computed(() => {
   if (needsAxisSelection.value || chartRows.value.length === 0) {
     return { labels: [], datasets: [] }
   }
   const xCol = selectXaxis.value
-  const yCol = selectYaxis.value
   return {
     labels: chartRows.value.map(r => r[xCol]),
-    datasets: [
-      {
+    datasets: selectYaxes.value.map((yCol, index) => {
+      const colors = chartColors[index % chartColors.length]
+      return {
         label: `${yCol}`,
         data: chartRows.value.map(r => r[yCol]),
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        borderColor: colors.border,
+        backgroundColor: colors.background,
         pointRadius: 5,
         tension: 0.0
       }
-    ]
+    })
   }
 })
 
@@ -209,26 +257,48 @@ const chartOptions = {
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center gap-3 mt-4 justify-center">
-      <select
-        v-model="selectXaxis"
-        class="w-60 rounded-lg border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="">Select X-Axis...</option>
-        <option v-for="col in availableColumns" :key="col" :value="col">{{ col }}</option>
-      </select>
-      <select
-        v-model="selectYaxis"
-        class="w-60 rounded-lg border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="">Select Y-Axis...</option>
-        <option v-for="col in availableColumns" :key="col" :value="col">{{ col }}</option>
-      </select>
+    <div class="flex flex-col items-center gap-2 mt-4">
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <div class="flex flex-col items-start">
+          <label for="x-axis" class="text-xs uppercase tracking-wide text-gray-400">X axis</label>
+          <select
+            id="x-axis"
+            v-model="selectXaxis"
+            class="w-60 rounded-lg border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select X-Axis...</option>
+            <option v-for="col in availableColumns" :key="col" :value="col">{{ col }}</option>
+          </select>
+        </div>
+        <div class="flex flex-col items-start">
+          <label for="y-axis" class="text-xs uppercase tracking-wide text-gray-400">Y axis</label>
+          <select
+            id="y-axis"
+            v-model="yAxisSelection"
+            class="w-60 rounded-lg border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select Y-Axis...</option>
+            <option v-for="col in availableColumns" :key="col" :value="col">{{ col }}</option>
+          </select>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400 text-center">
+        Tip: click a column header to set Y, Shift+Click to add/remove Y, Ctrl/Cmd+Click to set X.
+      </p>
+      <p v-if="yAxisLabel" class="text-xs text-gray-500 text-center">
+        Y variables: {{ yAxisLabel }}
+      </p>
     </div>
 
     <div class="grid gap-6 md:grid-cols-2">
       <div class="max-h-[480px] overflow-auto rounded-xl border border-gray-700 bg-gray-900/60 shadow-inner backdrop-blur">
-        <template v-if="tableRows.length">
+        <div v-if="tableLoading" class="flex h-full items-center justify-center p-6">
+          <p class="text-sm text-gray-400 text-center">Loading table preview...</p>
+        </div>
+        <div v-else-if="tableError" class="flex h-full items-center justify-center p-6">
+          <p class="text-sm text-red-400 text-center">{{ tableError }}</p>
+        </div>
+        <template v-else-if="tableRows.length">
           <table class="min-w-full table-auto text-sm text-gray-100">
             <thead class="sticky top-0 z-10 bg-gray-900/90 text-[0.7rem] uppercase tracking-wide text-gray-400 backdrop-blur">
               <tr class="border-b border-gray-700">
@@ -243,12 +313,12 @@ const chartOptions = {
                     @click="handleHeaderClick($event, c)"
                     @keydown.enter="handleHeaderKey($event, c)"
                     @keydown.space.prevent="handleHeaderKey($event, c)"
-                    title="Click to set Y axis, Ctrl+Click to set X axis"
+                    title="Click to set Y axis, Shift+Click to add/remove Y, Ctrl+Click to set X axis"
                   >
                     <span class="font-semibold normal-case text-sm">{{ c }}</span>
                     <div class="ml-2 flex items-center gap-1">
                       <span
-                        v-if="selectYaxis === c"
+                        v-if="selectYaxes.includes(c)"
                         class="rounded-sm bg-blue-500/20 px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase text-blue-200"
                       >
                         Y
@@ -295,6 +365,18 @@ const chartOptions = {
           class="h-full flex items-center justify-center text-sm text-gray-400 text-center"
         >
           Select both axes to render the chart.
+        </div>
+        <div
+          v-else-if="chartLoading"
+          class="h-full flex items-center justify-center text-sm text-gray-400 text-center"
+        >
+          Loading chart data...
+        </div>
+        <div
+          v-else-if="chartError"
+          class="h-full flex items-center justify-center text-sm text-red-400 text-center"
+        >
+          {{ chartError }}
         </div>
         <div
           v-else-if="chartRows.length === 0"
